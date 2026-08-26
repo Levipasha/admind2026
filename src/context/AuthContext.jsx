@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { apiFetch } from '../config/api.js';
 
 const AuthContext = createContext(null);
 
@@ -19,25 +20,20 @@ export function AuthProvider({ children }) {
 
   // Step 1: Send OTP to email
   const sendOtp = async (email) => {
-    const res = await fetch('/api/auth/otp-send', {
+    return await apiFetch('/api/auth/otp-send', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Failed to send OTP');
-    return data;
   };
 
   // Step 2: Verify OTP and login
   const verifyOtp = async (email, code) => {
-    const res = await fetch('/api/auth/otp-verify', {
+    const data = await apiFetch('/api/auth/otp-verify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, code }),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Invalid OTP');
     if (data.user?.role !== 'admin') throw new Error('Access denied. Admin accounts only.');
     localStorage.setItem('dt_admin_token', data.token);
     localStorage.setItem('dt_admin_user', JSON.stringify(data.user));
@@ -48,13 +44,11 @@ export function AuthProvider({ children }) {
 
   // Password-only login for local development
   const loginAdmin = async (password) => {
-    const res = await fetch('/api/auth/admin-login', {
+    const data = await apiFetch('/api/auth/admin-login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password }),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Invalid password');
     localStorage.setItem('dt_admin_token', data.token);
     localStorage.setItem('dt_admin_user', JSON.stringify(data.user));
     setToken(data.token);
@@ -64,15 +58,11 @@ export function AuthProvider({ children }) {
 
   // Google Firebase Login
   const loginWithGoogle = async (idToken) => {
-    const res = await fetch('/api/auth/admin-google-login', {
+    const data = await apiFetch('/api/auth/admin-google-login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ idToken }),
     });
-    const data = await res.json();
-    if (!res.ok) {
-      throw new Error(data.message || 'Access Denied: You do not have permission to access the admin panel.');
-    }
     localStorage.setItem('dt_admin_token', data.token);
     localStorage.setItem('dt_admin_user', JSON.stringify(data.user));
     setToken(data.token);

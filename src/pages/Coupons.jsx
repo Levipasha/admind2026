@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
+import { apiFetch } from '../config/api.js';
 import { Plus, ToggleLeft, ToggleRight, Trash2, RefreshCw, Ticket, Check } from 'lucide-react';
 
 const EMPTY_FORM = {
@@ -24,10 +25,10 @@ export default function Coupons() {
   const fetchCoupons = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/coupons', {
+      const data = await apiFetch('/api/admin/coupons', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      if (res.ok) setCoupons(await res.json());
+      setCoupons(data);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   };
@@ -40,7 +41,7 @@ export default function Coupons() {
     setFormError(''); setFormSuccess('');
     setSubmitting(true);
     try {
-      const res = await fetch('/api/admin/coupons/create', {
+      const data = await apiFetch('/api/admin/coupons/create', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -49,22 +50,17 @@ export default function Coupons() {
           usageLimit: Number(form.usageLimit),
         }),
       });
-      const data = await res.json();
-      if (res.ok) {
-        setFormSuccess(`Coupon "${data.coupon.code}" created!`);
-        setForm(EMPTY_FORM);
-        fetchCoupons();
-      } else {
-        setFormError(data.message || 'Failed to create coupon.');
-      }
-    } catch (e) { setFormError('Network error.'); }
+      setFormSuccess(`Coupon "${data.coupon.code}" created!`);
+      setForm(EMPTY_FORM);
+      fetchCoupons();
+    } catch (e) { setFormError(e.message || 'Failed to create coupon.'); }
     finally { setSubmitting(false); }
   };
 
   const toggleCoupon = async (id) => {
     if (isViewer) return;
     try {
-      await fetch('/api/admin/coupons/toggle', {
+      await apiFetch('/api/admin/coupons/toggle', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ couponId: id }),

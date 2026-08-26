@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
+import { apiFetch } from '../config/api.js';
 import { RefreshCw, Trash2, GitMerge, Users, School, ChevronDown } from 'lucide-react';
 
 export default function Teams() {
@@ -15,10 +16,10 @@ export default function Teams() {
   const fetchTeams = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/teams', {
+      const data = await apiFetch('/api/admin/teams', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      if (res.ok) setTeams(await res.json());
+      setTeams(data);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   };
@@ -29,11 +30,11 @@ export default function Teams() {
     if (isViewer) return;
     if (!window.confirm(`Dissolve team "${name}"? All members will be unassigned.`)) return;
     try {
-      const res = await fetch(`/api/admin/teams/${id}`, {
+      await apiFetch(`/api/admin/teams/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
-      if (res.ok) { fetchTeams(); }
+      fetchTeams();
     } catch (e) { console.error(e); }
   };
 
@@ -44,15 +45,14 @@ export default function Teams() {
     }
     setMerging(true); setMergeMsg('');
     try {
-      const res = await fetch('/api/admin/teams/merge', {
+      const data = await apiFetch('/api/admin/teams/merge', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ teamAId: mergeA, teamBId: mergeB })
       });
-      const data = await res.json();
       setMergeMsg(data.message || 'Done');
-      if (res.ok) { setMergeA(''); setMergeB(''); fetchTeams(); }
-    } catch (e) { setMergeMsg('Merge failed.'); }
+      setMergeA(''); setMergeB(''); fetchTeams();
+    } catch (e) { setMergeMsg(e.message || 'Merge failed.'); }
     finally { setMerging(false); }
   };
 

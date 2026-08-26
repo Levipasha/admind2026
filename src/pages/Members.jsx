@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
+import { apiFetch, API_URL } from '../config/api.js';
 import { Search, RefreshCw, Download, UserCheck, Users } from 'lucide-react';
 
 export default function Members() {
@@ -12,10 +13,10 @@ export default function Members() {
   const fetchParticipants = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/participants?search=${encodeURIComponent(search)}`, {
+      const data = await apiFetch(`/api/admin/participants?search=${encodeURIComponent(search)}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      if (res.ok) setParticipants(await res.json());
+      setParticipants(data);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   }, [token, search]);
@@ -28,12 +29,9 @@ export default function Members() {
   }, [token, search, fetchParticipants]);
 
   const exportCSV = () => {
-    const link = document.createElement('a');
-    link.href = `/api/admin/export-csv`;
-    link.setAttribute('download', 'participants.csv');
-    link.setAttribute('data-token', token);
+    const csvUrl = `${API_URL}/api/admin/export-csv`;
     // We need to do a fetch with auth header, so open via fetch blob
-    fetch('/api/admin/export-csv', { headers: { Authorization: `Bearer ${token}` } })
+    fetch(csvUrl, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.blob())
       .then(blob => {
         const url = URL.createObjectURL(blob);
@@ -46,12 +44,12 @@ export default function Members() {
   const checkIn = async (userId) => {
     if (isViewer) return;
     try {
-      const res = await fetch('/api/admin/check-in', {
+      await apiFetch('/api/admin/check-in', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId })
       });
-      if (res.ok) fetchParticipants();
+      fetchParticipants();
     } catch (e) { console.error(e); }
   };
 

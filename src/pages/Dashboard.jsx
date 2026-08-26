@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
+import { apiFetch } from '../config/api.js';
 import { Users, CreditCard, UserCheck, GitBranch, RefreshCw, TrendingUp } from 'lucide-react';
 
 export default function Dashboard() {
@@ -10,10 +11,10 @@ export default function Dashboard() {
   const fetchStats = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/stats', {
+      const data = await apiFetch('/api/admin/stats', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      if (res.ok) setStats(await res.json());
+      setStats(data);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   };
