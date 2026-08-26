@@ -12,7 +12,7 @@ const EMPTY_FORM = {
 };
 
 export default function Coupons() {
-  const { token } = useAuth();
+  const { token, isViewer } = useAuth();
   const [coupons, setCoupons]     = useState([]);
   const [loading, setLoading]     = useState(true);
   const [showForm, setShowForm]   = useState(false);
@@ -36,6 +36,7 @@ export default function Coupons() {
 
   const createCoupon = async (e) => {
     e.preventDefault();
+    if (isViewer) return;
     setFormError(''); setFormSuccess('');
     setSubmitting(true);
     try {
@@ -61,6 +62,7 @@ export default function Coupons() {
   };
 
   const toggleCoupon = async (id) => {
+    if (isViewer) return;
     try {
       await fetch('/api/admin/coupons/toggle', {
         method: 'POST',
@@ -85,11 +87,22 @@ export default function Coupons() {
           <button className="btn btn-ghost" onClick={fetchCoupons} disabled={loading}>
             <RefreshCw size={13} />Refresh
           </button>
-          <button className="btn btn-primary" onClick={() => setShowForm(v => !v)}>
-            <Plus size={13} />{showForm ? 'Cancel' : 'Create Coupon'}
-          </button>
+          {!isViewer && (
+            <button className="btn btn-primary" onClick={() => setShowForm(v => !v)}>
+              <Plus size={13} />{showForm ? 'Cancel' : 'Create Coupon'}
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Read-Only Notice */}
+      {isViewer && (
+        <div className="card" style={{ marginBottom: 16, background: 'rgba(245,158,11,0.06)', borderColor: 'rgba(245,158,11,0.2)' }}>
+          <div style={{ fontSize: 11.5, color: '#fbbf24', fontWeight: 600 }}>
+            Observer Mode (Read-Only): Coupon creation and activation toggling are disabled.
+          </div>
+        </div>
+      )}
 
       {/* Create Form */}
       {showForm && (
@@ -199,8 +212,10 @@ export default function Coupons() {
                     <td>
                       <button
                         className={`btn btn-sm ${c.isActive ? 'btn-danger' : 'btn-success'}`}
-                        onClick={() => toggleCoupon(c.id)}
-                        title={c.isActive ? 'Deactivate' : 'Activate'}
+                        onClick={() => !isViewer && toggleCoupon(c.id)}
+                        disabled={isViewer}
+                        style={isViewer ? { opacity: 0.4, cursor: 'not-allowed' } : {}}
+                        title={isViewer ? 'Read-only observer' : (c.isActive ? 'Deactivate' : 'Activate')}
                       >
                         {c.isActive ? <ToggleRight size={13} /> : <ToggleLeft size={13} />}
                         {c.isActive ? 'Disable' : 'Enable'}

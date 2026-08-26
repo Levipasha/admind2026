@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { RefreshCw, Trash2, GitMerge, Users, School, ChevronDown } from 'lucide-react';
 
 export default function Teams() {
-  const { token } = useAuth();
+  const { token, isViewer } = useAuth();
   const [teams, setTeams]   = useState([]);
   const [loading, setLoading] = useState(true);
   const [mergeA, setMergeA] = useState('');
@@ -26,6 +26,7 @@ export default function Teams() {
   useEffect(() => { if (token) fetchTeams(); }, [token]);
 
   const deleteTeam = async (id, name) => {
+    if (isViewer) return;
     if (!window.confirm(`Dissolve team "${name}"? All members will be unassigned.`)) return;
     try {
       const res = await fetch(`/api/admin/teams/${id}`, {
@@ -37,6 +38,7 @@ export default function Teams() {
   };
 
   const mergeTeams = async () => {
+    if (isViewer) return;
     if (!mergeA || !mergeB || mergeA === mergeB) {
       setMergeMsg('Select two different teams to merge.'); return;
     }
@@ -86,25 +88,33 @@ export default function Teams() {
       <div className="card" style={{ marginBottom: 24 }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>Merge Two Teams</div>
         <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 14 }}>Merges Team B members into Team A. Max 4 members total.</div>
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-end' }}>
-          <div className="input-group" style={{ flex: 1, minWidth: 160 }}>
-            <label className="label">Team A (Primary)</label>
-            <select className="input select" value={mergeA} onChange={e => setMergeA(e.target.value)}>
-              <option value="">Select Team A…</option>
-              {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-            </select>
+        
+        {isViewer ? (
+          <div style={{ fontSize: 11.5, color: '#fbbf24', padding: '8px 12px', background: 'rgba(245,158,11,0.06)', borderRadius: 8 }}>
+            Observer Mode: Team merging is disabled for read-only accounts.
           </div>
-          <div className="input-group" style={{ flex: 1, minWidth: 160 }}>
-            <label className="label">Team B (Absorb into A)</label>
-            <select className="input select" value={mergeB} onChange={e => setMergeB(e.target.value)}>
-              <option value="">Select Team B…</option>
-              {teams.filter(t => t.id !== mergeA).map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-            </select>
+        ) : (
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+            <div className="input-group" style={{ flex: 1, minWidth: 160 }}>
+              <label className="label">Team A (Primary)</label>
+              <select className="input select" value={mergeA} onChange={e => setMergeA(e.target.value)}>
+                <option value="">Select Team A…</option>
+                {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+              </select>
+            </div>
+            <div className="input-group" style={{ flex: 1, minWidth: 160 }}>
+              <label className="label">Team B (Absorb into A)</label>
+              <select className="input select" value={mergeB} onChange={e => setMergeB(e.target.value)}>
+                <option value="">Select Team B…</option>
+                {teams.filter(t => t.id !== mergeA).map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+              </select>
+            </div>
+            <button className="btn btn-ghost" onClick={mergeTeams} disabled={merging} style={{ height: 36 }}>
+              <GitMerge size={13} />{merging ? 'Merging…' : 'Merge Teams'}
+            </button>
           </div>
-          <button className="btn btn-ghost" onClick={mergeTeams} disabled={merging} style={{ height: 36 }}>
-            <GitMerge size={13} />{merging ? 'Merging…' : 'Merge Teams'}
-          </button>
-        </div>
+        )}
+
         {mergeMsg && (
           <div style={{ marginTop: 10, fontSize: 11, color: mergeMsg.toLowerCase().includes('success') ? 'var(--success)' : 'var(--danger)' }}>
             {mergeMsg}
@@ -170,11 +180,13 @@ export default function Teams() {
                 </div>
 
                 {/* Actions */}
-                <div style={{ display: 'flex', gap: 8, paddingTop: 4, borderTop: '1px solid var(--border)' }}>
-                  <button className="btn btn-danger btn-sm" style={{ flex: 1, justifyContent: 'center' }} onClick={() => deleteTeam(team.id, team.name)}>
-                    <Trash2 size={11} />Dissolve
-                  </button>
-                </div>
+                {!isViewer && (
+                  <div style={{ display: 'flex', gap: 8, paddingTop: 4, borderTop: '1px solid var(--border)' }}>
+                    <button className="btn btn-danger btn-sm" style={{ flex: 1, justifyContent: 'center' }} onClick={() => deleteTeam(team.id, team.name)}>
+                      <Trash2 size={11} />Dissolve
+                    </button>
+                  </div>
+                )}
               </div>
             );
           })}

@@ -15,7 +15,7 @@ const navItems = [
 ];
 
 export default function Sidebar() {
-  const { admin, logout } = useAuth();
+  const { admin, logout, isViewer } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -56,8 +56,13 @@ export default function Sidebar() {
       <div className="sidebar-footer">
         {admin && (
           <div style={{ padding: '8px 12px 10px', borderRadius: 'var(--radius-sm)', background: 'var(--accent-dim)', marginBottom: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+              <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', color: isViewer ? '#f59e0b' : '#22c55e', letterSpacing: '0.05em' }}>
+                {isViewer ? 'Viewer (Read-Only)' : 'Super Admin'}
+              </span>
+            </div>
             <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{admin.name}</div>
-            <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 1 }}>{admin.email}</div>
+            <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{admin.email}</div>
           </div>
         )}
         <button onClick={handleLogout} className="nav-item btn-danger" style={{ width: '100%', border: 'none' }}>

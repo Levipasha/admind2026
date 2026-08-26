@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { Search, RefreshCw, Download, UserCheck, Users } from 'lucide-react';
 
 export default function Members() {
-  const { token } = useAuth();
+  const { token, isViewer } = useAuth();
   const [participants, setParticipants] = useState([]);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all'); // all | paid | unpaid | checkedin
@@ -44,8 +44,9 @@ export default function Members() {
   };
 
   const checkIn = async (userId) => {
+    if (isViewer) return;
     try {
-      const res = await fetch('/api/admin/checkin', {
+      const res = await fetch('/api/admin/check-in', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId })
@@ -175,9 +176,13 @@ export default function Members() {
                   <td>{statusBadge(p)}</td>
                   <td>
                     {!p.checkedIn && p.paymentStatus === 'paid' ? (
-                      <button className="btn btn-success btn-sm" onClick={() => checkIn(p.id)}>
-                        <UserCheck size={11} />Check In
-                      </button>
+                      isViewer ? (
+                        <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Observer</span>
+                      ) : (
+                        <button className="btn btn-success btn-sm" onClick={() => checkIn(p.id)}>
+                          <UserCheck size={11} />Check In
+                        </button>
+                      )
                     ) : p.checkedIn ? (
                       <span style={{ fontSize: 10, color: 'var(--success)' }}>✓ Done</span>
                     ) : (
