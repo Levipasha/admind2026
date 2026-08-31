@@ -80,7 +80,7 @@ export default function Members() {
       <div className="section-header">
         <div>
           <div className="section-title">Members Monitor</div>
-          <div className="section-sub">Participant management</div>
+          <div className="section-sub">{filtered.length} participants shown</div>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button className="btn btn-ghost" onClick={fetchParticipants} disabled={loading}>

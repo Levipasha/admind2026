@@ -77,7 +77,7 @@ export default function Teams() {
       <div className="section-header">
         <div>
           <div className="section-title">Teams Monitor</div>
-          <div className="section-sub">All registered teams</div>
+          <div className="section-sub">{teams.length} teams registered</div>
         </div>
         <button className="btn btn-ghost" onClick={fetchTeams} disabled={loading}>
           <RefreshCw size={13} />Refresh
