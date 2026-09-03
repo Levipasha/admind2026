@@ -145,6 +145,7 @@ export default function Members() {
                 <th>Phone</th>
                 <th>College</th>
                 <th>Branch / Year</th>
+                <th>Accommodation</th>
                 <th>Team</th>
                 <th>Amount</th>
                 <th>Status</th>
@@ -163,6 +164,13 @@ export default function Members() {
                   <td>{p.phone}</td>
                   <td style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.college}</td>
                   <td>{p.branch} · {p.year}</td>
+                  <td>
+                    {p.accommodation === 'yes' ? (
+                      <span style={{ fontSize: 10, color: '#a78bfa', background: 'rgba(167, 139, 250, 0.1)', padding: '2px 6px', borderRadius: 4, fontWeight: 600 }}>With Acc</span>
+                    ) : (
+                      <span style={{ fontSize: 10, color: '#71717a' }}>No Acc</span>
+                    )}
+                  </td>
                   <td>
                     {p.teamId
                       ? <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'var(--text-muted)' }}>{p.teamId}</span>
